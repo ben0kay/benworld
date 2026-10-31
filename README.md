@@ -1,0 +1,174 @@
+# Benworld
+
+**Repository:** ben0kay/benworld  
+**Engine:** Godot 4 .NET / C# (planned)  
+**Status:** Planning / repository foundation — no gameplay or world systems are implemented yet.
+
+## Vision
+
+Benworld is a clean, modular foundation for experimenting with a first-person, simulation-focused game in a large, natural, procedurally generated world. The first technical priority is a **custom Godot terrain generator**—not an installed terrain plugin—exploring 3D density fields, marching cubes, chunk streaming, distance-based level of detail (LOD), and background generation. The long-term game may involve wilderness exploration, scavenging, enterable buildings, basements, caves, survival systems, and AI; those are directions, **not commitments or implemented features**.
+
+The project deliberately separates **world technology** from **FPS gameplay** so either can be developed and tested without the other. Existing work from War Machine and Final Machine is a reference library; copy over individual proven components only when specifically approved and compatible.
+
+## Core development approach: independent scenes
+
+Build each subsystem in its own scene and test environment; bring them together later through **scene instancing and shared contracts**, not by merging unrelated source code or making one monolithic test scene.
+
+| Development scene | Primary purpose | Dependencies |
+| --- | --- | --- |
+| **Scenes/Tests/FPS_Test.tscn** | Player movement, camera, controls, inventory, weapons, interaction, stamina | Player scene and minimal graybox collision |
+| **Scenes/Tests/World_Test.tscn** | Marching cubes, terrain topology, caves, chunks, LOD, streaming, vegetation, performance | World scene and independent free-fly/debug camera |
+| **Scenes/Tests/Buildings_Test.tscn** | Buildings, interiors, doors, props, stairs, basements, collision | Building scenes and test ground |
+| **Scenes/Tests/AI_Test.tscn** | Pathfinding, perception, investigation, combat and NPC simulation | AI actors, simple target/player stand-in, test geometry |
+| **Scenes/Game/MainGame.tscn** | Eventually instantiate integrated World, Player, AI and UI | Only systems ready for integration |
+
+Each test scene should launch on its own. The World scene must not require a fully implemented Player scene; the Player must not assume the presence of a particular terrain. Provide small adapters (spawn placement, terrain collision, world queries, interaction, persistence) when integrating.
+
+## Planned project layout
+
+The paths below are the **target structure**, not a claim that the files already exist. Create feature folders/scenes as each phase actually needs them; do not commit empty placeholders just to match the diagram.
+
+~~~text
+benworld/
+├── README.md
+├── AGENTS.md
+├── CodePreferences.md
+├── Scenes/
+│   ├── Tests/
+│   │   ├── FPS_Test.tscn
+│   │   ├── World_Test.tscn
+│   │   ├── Buildings_Test.tscn
+│   │   └── AI_Test.tscn
+│   └── Game/
+│       └── MainGame.tscn
+├── Player/
+│   ├── Player.tscn
+│   ├── Player.cs
+│   ├── Movement/
+│   ├── Weapons/
+│   └── Interaction/
+├── World/
+│   ├── World.tscn
+│   ├── Generation/
+│   │   ├── DensityGenerator.cs
+│   │   ├── MarchingCubes.cs
+│   │   └── BiomeGenerator.cs
+│   ├── Streaming/
+│   │   ├── ChunkManager.cs
+│   │   └── TerrainLOD.cs
+│   └── Vegetation/
+├── Buildings/
+├── AI/
+├── Assets/
+├── Configuration/
+└── Documentation/
+~~~
+
+Prefer one clearly owned folder per subsystem, reusable sub-scenes, configuration resources for tunable values, and a brief feature README when a subsystem becomes real. Keep scene and script names stable once used by other systems.
+
+## Planned integrated scene ownership
+
+~~~text
+MainGame
+├── World                    (World/World.tscn)
+│   ├── TerrainRoot
+│   ├── VegetationRoot
+│   └── EnvironmentRoot
+├── WorldActorsRoot
+│   ├── PersistentEntitiesRoot
+│   │   ├── Player           (Player/Player.tscn)
+│   │   └── AIActors
+│   └── PersistentPropsRoot
+│       ├── Structures
+│       └── Objects
+├── GameplayHUD
+├── DebugUIRoot
+└── SystemsRoot
+~~~
+
+These are **ownership concepts**, not nodes that must be created on day one. Keep streaming, persistent actors/props, vegetation, terrain and shared services distinct. Systems should be configurable through exports and resources rather than hard-coded test-scene node paths.
+
+## Custom procedural world — technical direction
+
+### 1. Density-based geometry and marching cubes
+
+- Use deterministic world-space noise and an editable **3D signed density function** to classify solid versus empty space.
+- Marching cubes samples the eight corners of each cell; when density changes sign, interpolate edge positions and emit triangles. Adjacent chunks must sample matching border coordinates.
+- Begin with surface hills, then test caves, overhangs, cliffs and underground volumes. The generation algorithm alone does not provide attractive terrain: separate density shaping, biome rules, materials and vegetation.
+- Do not automatically assume marching cubes is the cheapest approach everywhere. Evaluate **hybrid heightfield surface + volumetric cave regions** if measurements show it is advantageous.
+
+### 2. Chunk layout and quadtree/LOD
+
+- Proposed first experiment: **32 m chunk width**, with **32 × 32 × 32 m** volumetric chunks when needed; at 1 m spacing a complete voxel cell chunk needs **33 samples per axis** for shared boundaries.
+- These are **starting settings**, not permanent constraints. Chunk coordinates and density sampling must be deterministic and world-space-based.
+- Use horizontal region management (a quadtree is a candidate) for surface visibility/LOD and 3D chunk indexing for underground volumes. Compare an octree only if justified.
+- Implement explicit LOD transition handling, skirt/transvoxel-style stitching or another validated crack-prevention method. Coarse/fine neighbour transitions require their own solution.
+- Keep terrain mesh LOD, collision residency, vegetation LOD, building/object streaming and AI simulation as separate concerns.
+
+### 3. Multithreading and streaming
+
+- Generate density buffers, meshes and placement data on background workers when safe.
+- Integrate scene-tree nodes and resources on the appropriate Godot thread; avoid unsafe worker access to active scene nodes.
+- Use generation queues, cancellation/stale-result rejection, bounded worker budgets and unload rules so movement does not cause memory or CPU spikes.
+- Stream the **area around the player**; never allocate a complete 32 km volumetric grid. Persist only seeds/settings and player-authored changes where possible.
+
+### 4. World scale, persistence and rendering
+
+- **Initial proof of concept:** approximately **512 × 512 m**, expandable after a stable chunked prototype.
+- **Long-term ambition:** up to **32 km × 32 km**, subject to performance and actual game needs; not a guaranteed milestone.
+- Plan for large-world coordinate precision early (for example, floating origin or a suitable large-world build strategy), but implement only when needed.
+- Use suitable materials, terrain blending, fog, natural lighting, MultiMesh vegetation instancing and authored tree/grass LODs. The marching-cubes algorithm itself does **not** generate lush visuals.
+- Keep generated terrain reproducible by seed. Save terrain edits, structures and persistent actors separately, with a versioned format.
+
+## Development milestones
+
+| ID | Milestone | Deliverable | State |
+| --- | --- | --- | --- |
+| **BW-00** | Repository and project foundation | Documentation, Godot .NET project, runnable test-scene shells and clear ownership | **Planning** |
+| **BW-W1** | Marching-cubes proof of concept | One small hill with visible mesh, normals, simple material and collision | **Planned** |
+| **BW-W2** | Adjacent chunk generation | Deterministic neighbouring chunks with no same-resolution seams | **Planned** |
+| **BW-W3** | Natural geography and caves | Height variation, density shaping, cliffs, caves, overhangs and tunable seed | **Planned** |
+| **BW-W4** | Streaming and LOD | Threaded jobs, chunk loading/unloading, distance LOD, transition handling, debug statistics | **Planned** |
+| **BW-W5** | Forest and atmosphere pass | Terrain materials, grass, pine trees, vegetation LOD/instancing, lighting/fog | **Planned** |
+| **BW-F1** | Isolated FPS test | Reusable player scene, movement, camera and first interactions in a graybox room | **Planned** |
+| **BW-B1** | Isolated building test | Reusable building/interior scenes and collision; investigate ground and basement interfaces | **Planned** |
+| **BW-A1** | Isolated AI test | An NPC test actor with basic movement/perception in a dedicated arena | **Planned** |
+| **BW-I1** | First integration | Instance World and Player together; spawn on terrain and navigate with collision | **Planned** |
+| **BW-P1** | Long-range persistence/performance | Save/load edits and actors; larger traversal tests; profiling toward world-scale targets | **Planned** |
+
+### Recommended first implementation
+
+Start with **BW-00** and **BW-W1**. Make World_Test independently playable with an orbit/free-fly camera. Verify generated mesh, surface normals and collision before adding vegetation or 32 km scale. Build FPS_Test in parallel as a basic graybox, **not** entangled with World_Test.
+
+Advance to later milestones only after the previous implementation is reviewed. A Git commit or a compiling project is not proof of acceptable visual quality, correct caves or smooth FPS.
+
+## Architecture and integration contracts
+
+- **World owns terrain**: generation, mesh/collision residency, world seed, biomes and world queries such as surface height, solid/empty samples and safe spawn positions.
+- **Player owns FPS behavior**: movement, camera, input, equipment and interactions. It should consume world information via explicit contracts, not by knowing the test level hierarchy.
+- **Buildings own their geometry**: authored/procedural structure, interiors, colliders, interactable objects and optional requests for terrain excavation/placement. World integration resolves those requests.
+- **AI owns its behavior**: perception, navigation and actions; level geometry and spawn handling come from its host scene.
+- **MainGame composes subsystems**: instances the scenes and connects interfaces/signals. Avoid direct hard-coded cross-feature node paths.
+- **Saving** stores world seed, generated-world version, terrain modifications, actors and objects separately. Distinguish deterministic content from mutable state.
+
+## Performance and validation principles
+
+Aim for **smooth FPS without stalling when crossing chunk boundaries**, but benchmark actual frame time, memory and chunk-generation latency rather than declaring an arbitrary FPS guarantee.
+
+- Prefer jobs/events over idle per-frame loops; bound worker queues and mesh upload work.
+- Avoid per-blade grass nodes, unnecessary collisions on distant geometry, and high-detail volumetric data outside the active region.
+- Test cracks at both same-resolution and differing-LOD borders, cave normals, seams, collider readiness, teleport/fast traversal, unloading and re-entry.
+- Maintain a debug view of active chunks, queued jobs, LOD levels, generation timings and rough memory use.
+- Keep checks focused; owner performs visual/FPS checks in Godot. Report clearly what was and wasn't verified.
+
+## Reuse from existing repositories
+
+- **[War Machine](https://github.com/ben0kay/war-machine):** FPS/player systems, interactions, buildings/props, AI experiments, chunk streaming patterns, root ownership, and development lessons.
+- **[Final Machine](https://github.com/ben0kay/final-machine):** vegetation assets and LODs, graphics/forest authoring lessons, scene/configuration conventions, and the source of the initial agent/code-preference documents.
+- **[Terra Machine](https://github.com/ben0kay/terra-machine):** additional foliage, performance and world-art experiments.
+
+**Do not port Terrain3D or Voxel Tools implementations automatically.** Transfer isolated assets or reusable logic only after examining dependencies, licensing, coordinate systems, and compatibility with Benworld's custom generator. Assets/code have **not** been copied into this repository as part of these planning documents.
+
+## Instructions for future contributors and AI agents
+
+Read **AGENTS.md**, **CodePreferences.md**, this README, and the owning feature documents before making changes. Respect the planned-versus-implemented distinction, feature ownership, minimal testing policy, and project branch permissions. Propose focused steps, avoid unrelated rewrites, and keep project plans updated as milestones become real.
