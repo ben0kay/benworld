@@ -31,7 +31,7 @@ Keep test scenes independently runnable and gameplay systems reusable. The conce
 
 ~~~text
 MainGame
-├── World (World/World.tscn)
+├── World (WORLD/World.tscn)
 │   ├── TerrainRoot
 │   ├── VegetationRoot
 │   └── EnvironmentRoot
@@ -48,7 +48,7 @@ MainGame
 ~~~
 
 - This is a **planned ownership pattern**, not a demand to create empty placeholder nodes. Follow root README milestone status and instantiate only what's needed.
-- **FPS_Test** loads the reusable Player scene into a graybox; **World_Test** can generate and inspect terrain with a standalone debug camera and without the Player. Building and AI test scenes stay equally independent. MainGame instances and connects the systems when ready.
+- **FPS_Test** loads the reusable PLAYER scene into a graybox; **World_Test** can generate and inspect terrain with a standalone debug camera and without the Player. Keep the ownership folders as uppercase `WORLD/`, `PLAYER/`, `ASSETS/`; do not create lowercase variants. Building and AI test scenes stay equally independent. MainGame instances and connects the systems when ready.
 - Spawn actors under persistent entity roots and structures/props under their respective roots, rather than scattering persistent objects under the World root. Separate save/stream/debug ownership.
 - Use reusable instanced subsystem scenes and lightweight organizing `Node`/`Node3D` parents; **container-only nodes need no processing scripts**. Stable paths and explicit contracts are preferable to hard-coded cross-feature test-scene references.
 - Batch foliage with MultiMesh/region ownership instead of thousands of per-blade scene nodes. Keep vegetation rendering, terrain generation, physics, props and actor residency independently manageable.
@@ -71,6 +71,13 @@ MainGame
 - Weather particles, fire, chopping effects, creature investigation, construction events etc. should have explicit activation and termination behavior. Continuous animation such as active wind/daylight may legitimately update, but minimize duplicate work.
 - Terrain mesh LOD, region residency, vegetation LOD, collision/physics activation, AI simulation and object persistence are **separate concerns**. Do not claim custom mesh LOD automatically provides full region/object streaming.
 - Report any meaningful FPS/memory measurement conditions; never fabricate improvements. Include wake/sleep, scaling strategy and unverified checks in each feature handoff.
+
+## Authoring references and folder names
+
+- For terrain, biomes, caves, shoreline, vegetation, chunk streaming, world LOD or procedural geography, read **[WORLD/WORLD_AUTHORING.md](WORLD/WORLD_AUTHORING.md)** before implementation; consult [WORLD/README.md](WORLD/README.md) for ownership.
+- For FPS mechanics and reusable player scenes read **[PLAYER/README.md](PLAYER/README.md)**.
+- For GLB/GLTF imports, source textures, audio and asset-facing wrappers read **[ASSETS/README.md](ASSETS/README.md)**.
+- The uppercase top-level names are intentional. Keep them exact across Git, paths and Godot references.
 
 ## Custom procedural world reliability
 

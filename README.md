@@ -26,7 +26,7 @@ Each test scene should launch on its own. The World scene must not require a ful
 
 ## Planned project layout
 
-The paths below are the **target structure**, not a claim that the files already exist. Create feature folders/scenes as each phase actually needs them; do not commit empty placeholders just to match the diagram.
+Three top-level ownership folders now exist: **[WORLD/](WORLD/README.md)**, **[PLAYER/](PLAYER/README.md)** and **[ASSETS/](ASSETS/README.md)**. The other paths below are **planned**, not claims of implemented scenes or scripts. Create feature folders/scenes as each milestone requires them; avoid empty placeholders.
 
 ~~~text
 benworld/
@@ -41,25 +41,29 @@ benworld/
 │   │   └── AI_Test.tscn
 │   └── Game/
 │       └── MainGame.tscn
-├── Player/
-│   ├── Player.tscn
-│   ├── Player.cs
-│   ├── Movement/
-│   ├── Weapons/
-│   └── Interaction/
-├── World/
-│   ├── World.tscn
-│   ├── Generation/
-│   │   ├── DensityGenerator.cs
-│   │   ├── MarchingCubes.cs
-│   │   └── BiomeGenerator.cs
-│   ├── Streaming/
-│   │   ├── ChunkManager.cs
-│   │   └── TerrainLOD.cs
-│   └── Vegetation/
-├── Buildings/
-├── AI/
-├── Assets/
+├── PLAYER/                     [created]
+│   ├── README.md                [created]
+│   ├── Player.tscn              [planned]
+│   ├── Player.cs                [planned]
+│   ├── Movement/                [planned]
+│   ├── Weapons/                 [planned]
+│   └── Interaction/             [planned]
+├── WORLD/                      [created]
+│   ├── README.md                [created]
+│   ├── WORLD_AUTHORING.md       [created]
+│   ├── World.tscn               [planned]
+│   ├── Generation/              [planned]
+│   │   ├── DensityGenerator.cs  [planned]
+│   │   ├── MarchingCubes.cs     [planned]
+│   │   └── BiomeGenerator.cs    [planned]
+│   ├── Streaming/               [planned]
+│   │   ├── ChunkManager.cs      [planned]
+│   │   └── TerrainLOD.cs        [planned]
+│   └── Vegetation/              [planned]
+├── Buildings/                  [planned]
+├── AI/                         [planned]
+├── ASSETS/                     [created]
+│   └── README.md                [created]
 ├── Configuration/
 └── Documentation/
 ~~~
@@ -70,13 +74,13 @@ Prefer one clearly owned folder per subsystem, reusable sub-scenes, configuratio
 
 ~~~text
 MainGame
-├── World                    (World/World.tscn)
+├── World                    (WORLD/World.tscn)
 │   ├── TerrainRoot
 │   ├── VegetationRoot
 │   └── EnvironmentRoot
 ├── WorldActorsRoot
 │   ├── PersistentEntitiesRoot
-│   │   ├── Player           (Player/Player.tscn)
+│   │   ├── Player           (PLAYER/Player.tscn)
 │   │   └── AIActors
 │   └── PersistentPropsRoot
 │       ├── Structures
@@ -120,6 +124,15 @@ These are **ownership concepts**, not nodes that must be created on day one. Kee
 - Use suitable materials, terrain blending, fog, natural lighting, MultiMesh vegetation instancing and authored tree/grass LODs. The marching-cubes algorithm itself does **not** generate lush visuals.
 - Keep generated terrain reproducible by seed. Save terrain edits, structures and persistent actors separately, with a versioned format.
 
+## Authoring and ownership guides
+
+- **[WORLD/WORLD_AUTHORING.md](WORLD/WORLD_AUTHORING.md)** — landscape goals; deterministic geography, marching cubes, vegetation, biomes, caves, chunk streaming, long-distance presentation, seams, performance and verification.
+- **[WORLD/README.md](WORLD/README.md)** — WORLD folder responsibilities and development entry points.
+- **[PLAYER/README.md](PLAYER/README.md)** — standalone player/FPS architecture and test-scene isolation.
+- **[ASSETS/README.md](ASSETS/README.md)** — imported model, texture and audio organization; source versus reusable scene prefabs.
+
+The terrain vision is **coherent large-scale geography**, not random noisy hills: grassy foregrounds, forested valleys, jagged distant mountain ranges, optional shorelines and snow at altitude. Marching cubes creates surfaces; separate geography, biome, materials, vegetation, water and atmospheric systems create the result. The world authoring file is the detailed guide.
+
 ## Development milestones
 
 | ID | Milestone | Deliverable | State |
@@ -127,7 +140,7 @@ These are **ownership concepts**, not nodes that must be created on day one. Kee
 | **BW-00** | Repository and project foundation | Documentation, Godot .NET project, runnable test-scene shells and clear ownership | **Planning** |
 | **BW-W1** | Marching-cubes proof of concept | One small hill with visible mesh, normals, simple material and collision | **Planned** |
 | **BW-W2** | Adjacent chunk generation | Deterministic neighbouring chunks with no same-resolution seams | **Planned** |
-| **BW-W3** | Natural geography and caves | Height variation, density shaping, cliffs, caves, overhangs and tunable seed | **Planned** |
+| **BW-W3** | Natural geography and caves | Coherent terrain regions, height variation, ridges, density shaping, cliffs, caves, overhangs and tunable seed | **Planned** |
 | **BW-W4** | Streaming and LOD | Threaded jobs, chunk loading/unloading, distance LOD, transition handling, debug statistics | **Planned** |
 | **BW-W5** | Forest and atmosphere pass | Terrain materials, grass, pine trees, vegetation LOD/instancing, lighting/fog | **Planned** |
 | **BW-F1** | Isolated FPS test | Reusable player scene, movement, camera and first interactions in a graybox room | **Planned** |
@@ -144,8 +157,8 @@ Advance to later milestones only after the previous implementation is reviewed. 
 
 ## Architecture and integration contracts
 
-- **World owns terrain**: generation, mesh/collision residency, world seed, biomes and world queries such as surface height, solid/empty samples and safe spawn positions.
-- **Player owns FPS behavior**: movement, camera, input, equipment and interactions. It should consume world information via explicit contracts, not by knowing the test level hierarchy.
+- **WORLD owns terrain**: generation, mesh/collision residency, world seed, biomes and world queries such as surface height, solid/empty samples and safe spawn positions. Follow [WORLD/WORLD_AUTHORING.md](WORLD/WORLD_AUTHORING.md) for design/implementation guidance.
+- **PLAYER owns FPS behavior**: movement, camera, input, equipment and interactions. It should consume world information via explicit contracts, not by knowing the test level hierarchy. Follow [PLAYER/README.md](PLAYER/README.md).
 - **Buildings own their geometry**: authored/procedural structure, interiors, colliders, interactable objects and optional requests for terrain excavation/placement. World integration resolves those requests.
 - **AI owns its behavior**: perception, navigation and actions; level geometry and spawn handling come from its host scene.
 - **MainGame composes subsystems**: instances the scenes and connects interfaces/signals. Avoid direct hard-coded cross-feature node paths.
@@ -171,4 +184,4 @@ Aim for **smooth FPS without stalling when crossing chunk boundaries**, but benc
 
 ## Instructions for future contributors and AI agents
 
-Read **AGENTS.md**, **CodePreferences.md**, this README, and the owning feature documents before making changes. Respect the planned-versus-implemented distinction, feature ownership, minimal testing policy, and project branch permissions. Propose focused steps, avoid unrelated rewrites, and keep project plans updated as milestones become real.
+Read **AGENTS.md**, **CodePreferences.md**, this README, **WORLD/WORLD_AUTHORING.md** for any terrain/biome/vegetation/world change, and the owning feature documents before making changes. Respect the planned-versus-implemented distinction, feature ownership, minimal testing policy, and project branch permissions. Propose focused steps, avoid unrelated rewrites, and keep project plans updated as milestones become real.
