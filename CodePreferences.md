@@ -48,7 +48,7 @@ MainGame
 ~~~
 
 - This is a **planned ownership pattern**, not a demand to create empty placeholder nodes. Follow root README milestone status and instantiate only what's needed.
-- **FPS_Test** loads the reusable PLAYER scene into a graybox; **World_Test** can generate and inspect terrain with a standalone debug camera and without the Player. Keep the ownership folders as uppercase `WORLD/`, `PLAYER/`, `ASSETS/`; do not create lowercase variants. Building and AI test scenes stay equally independent. MainGame instances and connects the systems when ready.
+- **SCENE/Scene_Player.tscn** instances the reusable `PLAYER/Player.tscn` in a graybox; future **SCENE/Scene_World.tscn** can generate and inspect terrain with a standalone debug camera and without the Player. Keep the ownership folders as uppercase `WORLD/`, `PLAYER/`, `ASSETS/`; do not create lowercase variants. Building and AI test scenes stay equally independent. MainGame instances and connects the systems when ready.
 - Spawn actors under persistent entity roots and structures/props under their respective roots, rather than scattering persistent objects under the World root. Separate save/stream/debug ownership.
 - Use reusable instanced subsystem scenes and lightweight organizing `Node`/`Node3D` parents; **container-only nodes need no processing scripts**. Stable paths and explicit contracts are preferable to hard-coded cross-feature test-scene references.
 - Batch foliage with MultiMesh/region ownership instead of thousands of per-blade scene nodes. Keep vegetation rendering, terrain generation, physics, props and actor residency independently manageable.
@@ -75,7 +75,7 @@ MainGame
 ## Authoring references and folder names
 
 - For terrain, biomes, caves, shoreline, vegetation, chunk streaming, world LOD or procedural geography, read **[WORLD/WORLD_AUTHORING.md](WORLD/WORLD_AUTHORING.md)** before implementation; consult [WORLD/README.md](WORLD/README.md) for ownership.
-- For FPS mechanics and reusable player scenes read **[PLAYER/README.md](PLAYER/README.md)**.
+- For FPS mechanics and reusable player scenes read **[PLAYER/README.md](PLAYER/README.md)**. Keep physical key/mouse bindings centralized in `PLAYER/Input/PlayerInput.cs`; movement and stance logic stay in `PLAYER/Movement/`. Independent test scenes belong in uppercase `SCENE/`.
 - For GLB/GLTF imports, source textures, audio and asset-facing wrappers read **[ASSETS/README.md](ASSETS/README.md)**.
 - The uppercase top-level names are intentional. Keep them exact across Git, paths and Godot references.
 

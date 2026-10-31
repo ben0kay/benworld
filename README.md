@@ -1,8 +1,8 @@
 # Benworld
 
 **Repository:** ben0kay/benworld  
-**Engine:** Godot 4 .NET / C# (planned)  
-**Status:** Planning / repository foundation — no gameplay or world systems are implemented yet.
+**Engine:** Godot 4 .NET / C# (locally created; GitHub project.godot not yet committed)  
+**Status:** First reusable FPS controller and test scene authored, awaiting local Godot build/play validation; procedural world systems remain planned.
 
 ## Vision
 
@@ -16,11 +16,11 @@ Build each subsystem in its own scene and test environment; bring them together 
 
 | Development scene | Primary purpose | Dependencies |
 | --- | --- | --- |
-| **Scenes/Tests/FPS_Test.tscn** | Player movement, camera, controls, inventory, weapons, interaction, stamina | Player scene and minimal graybox collision |
-| **Scenes/Tests/World_Test.tscn** | Marching cubes, terrain topology, caves, chunks, LOD, streaming, vegetation, performance | World scene and independent free-fly/debug camera |
-| **Scenes/Tests/Buildings_Test.tscn** | Buildings, interiors, doors, props, stairs, basements, collision | Building scenes and test ground |
-| **Scenes/Tests/AI_Test.tscn** | Pathfinding, perception, investigation, combat and NPC simulation | AI actors, simple target/player stand-in, test geometry |
-| **Scenes/Game/MainGame.tscn** | Eventually instantiate integrated World, Player, AI and UI | Only systems ready for integration |
+| **SCENE/Scene_Player.tscn** | Arrow-key FPS, inverted mouse look, RMB jump and right-Ctrl crouch | Instances reusable PLAYER/Player.tscn; graybox with collision (awaiting validation) |
+| **SCENE/Scene_World.tscn** | Marching cubes, terrain topology, caves, chunks, LOD, streaming, vegetation, performance | World scene and independent free-fly/debug camera |
+| **SCENE/Scene_Buildings.tscn** | Buildings, interiors, doors, props, stairs, basements, collision | Building scenes and test ground |
+| **SCENE/Scene_AI.tscn** | Pathfinding, perception, investigation, combat and NPC simulation | AI actors, simple target/player stand-in, test geometry |
+| **SCENE/Scene_Game.tscn** | Eventually instantiate integrated World, Player, AI and UI | Only systems ready for integration |
 
 Each test scene should launch on its own. The World scene must not require a fully implemented Player scene; the Player must not assume the presence of a particular terrain. Provide small adapters (spawn placement, terrain collision, world queries, interaction, persistence) when integrating.
 
@@ -33,19 +33,26 @@ benworld/
 ├── README.md
 ├── AGENTS.md
 ├── CodePreferences.md
-├── Scenes/
-│   ├── Tests/
-│   │   ├── FPS_Test.tscn
-│   │   ├── World_Test.tscn
-│   │   ├── Buildings_Test.tscn
-│   │   └── AI_Test.tscn
-│   └── Game/
-│       └── MainGame.tscn
+├── BENWORLD.csproj             [created]
+├── SCENE/                      [created]
+│   ├── README.md               [created]
+│   ├── Scene_Player.tscn       [created]
+│   ├── Scene_World.tscn        [planned]
+│   ├── Scene_Buildings.tscn    [planned]
+│   ├── Scene_AI.tscn           [planned]
+│   └── Scene_Game.tscn         [planned]
 ├── PLAYER/                     [created]
 │   ├── README.md                [created]
-│   ├── Player.tscn              [planned]
-│   ├── Player.cs                [planned]
-│   ├── Movement/                [planned]
+│   ├── Player.tscn              [created]
+│   ├── PlayerController.cs      [created]
+│   ├── Input/
+│   │   └── PlayerInput.cs       [created]
+│   ├── Movement/
+│   │   ├── PlayerMovement.cs    [created]
+│   │   └── PlayerStance.cs      [created]
+│   ├── Configuration/
+│   │   ├── PlayerSettings.cs    [created]
+│   │   └── PlayerMaster.tres    [created]
 │   ├── Weapons/                 [planned]
 │   └── Interaction/             [planned]
 ├── WORLD/                      [created]
@@ -129,6 +136,7 @@ These are **ownership concepts**, not nodes that must be created on day one. Kee
 - **[WORLD/WORLD_AUTHORING.md](WORLD/WORLD_AUTHORING.md)** — landscape goals; deterministic geography, marching cubes, vegetation, biomes, caves, chunk streaming, long-distance presentation, seams, performance and verification.
 - **[WORLD/README.md](WORLD/README.md)** — WORLD folder responsibilities and development entry points.
 - **[PLAYER/README.md](PLAYER/README.md)** — standalone player/FPS architecture and test-scene isolation.
+- **[SCENE/README.md](SCENE/README.md)** — test-room ownership, F6 run instructions and planned separate test scenes.
 - **[ASSETS/README.md](ASSETS/README.md)** — imported model, texture and audio organization; source versus reusable scene prefabs.
 
 The terrain vision is **coherent large-scale geography**, not random noisy hills: grassy foregrounds, forested valleys, jagged distant mountain ranges, optional shorelines and snow at altitude. Marching cubes creates surfaces; separate geography, biome, materials, vegetation, water and atmospheric systems create the result. The world authoring file is the detailed guide.
@@ -137,13 +145,13 @@ The terrain vision is **coherent large-scale geography**, not random noisy hills
 
 | ID | Milestone | Deliverable | State |
 | --- | --- | --- | --- |
-| **BW-00** | Repository and project foundation | Documentation, Godot .NET project, runnable test-scene shells and clear ownership | **Planning** |
+| **BW-00** | Repository and project foundation | Documentation and .NET project; local project.godot still needs a GitHub commit | **In Progress** |
 | **BW-W1** | Marching-cubes proof of concept | One small hill with visible mesh, normals, simple material and collision | **Planned** |
 | **BW-W2** | Adjacent chunk generation | Deterministic neighbouring chunks with no same-resolution seams | **Planned** |
 | **BW-W3** | Natural geography and caves | Coherent terrain regions, height variation, ridges, density shaping, cliffs, caves, overhangs and tunable seed | **Planned** |
 | **BW-W4** | Streaming and LOD | Threaded jobs, chunk loading/unloading, distance LOD, transition handling, debug statistics | **Planned** |
 | **BW-W5** | Forest and atmosphere pass | Terrain materials, grass, pine trees, vegetation LOD/instancing, lighting/fog | **Planned** |
-| **BW-F1** | Isolated FPS test | Reusable player scene, movement, camera and first interactions in a graybox room | **Planned** |
+| **BW-F1** | Isolated FPS test | Reusable player, arrow keys, inverted mouse, RMB jump, right-Ctrl crouch and graybox test room | **Awaiting Validation** |
 | **BW-B1** | Isolated building test | Reusable building/interior scenes and collision; investigate ground and basement interfaces | **Planned** |
 | **BW-A1** | Isolated AI test | An NPC test actor with basic movement/perception in a dedicated arena | **Planned** |
 | **BW-I1** | First integration | Instance World and Player together; spawn on terrain and navigate with collision | **Planned** |
@@ -151,7 +159,7 @@ The terrain vision is **coherent large-scale geography**, not random noisy hills
 
 ### Recommended first implementation
 
-Start with **BW-00** and **BW-W1**. Make World_Test independently playable with an orbit/free-fly camera. Verify generated mesh, surface normals and collision before adding vegetation or 32 km scale. Build FPS_Test in parallel as a basic graybox, **not** entangled with World_Test.
+Start with **BW-00** and **BW-W1**. Make Scene_World independently playable with an orbit/free-fly camera. Verify generated mesh, surface normals and collision before adding vegetation or 32 km scale. Test FPS features in SCENE/Scene_Player independently, without coupling them to Scene_World.
 
 Advance to later milestones only after the previous implementation is reviewed. A Git commit or a compiling project is not proof of acceptable visual quality, correct caves or smooth FPS.
 
@@ -179,6 +187,8 @@ Aim for **smooth FPS without stalling when crossing chunk boundaries**, but benc
 - **[War Machine](https://github.com/ben0kay/war-machine):** FPS/player systems, interactions, buildings/props, AI experiments, chunk streaming patterns, root ownership, and development lessons.
 - **[Final Machine](https://github.com/ben0kay/final-machine):** vegetation assets and LODs, graphics/forest authoring lessons, scene/configuration conventions, and the source of the initial agent/code-preference documents.
 - **[Terra Machine](https://github.com/ben0kay/terra-machine):** additional foliage, performance and world-art experiments.
+
+**Godot local configuration:** The owner created `project.godot` locally but it has not yet been committed to GitHub. The committed `BENWORLD.csproj` targets Godot 4.7.2 .NET; compile and run need owner validation in the editor. Preserve the locally generated project configuration.
 
 **Do not port Terrain3D or Voxel Tools implementations automatically.** Transfer isolated assets or reusable logic only after examining dependencies, licensing, coordinate systems, and compatibility with Benworld's custom generator. Assets/code have **not** been copied into this repository as part of these planning documents.
 

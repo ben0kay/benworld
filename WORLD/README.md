@@ -8,7 +8,7 @@
 
 `WORLD/` will own deterministic geography and 3D density sampling, marching-cubes mesh construction, chunk residency, LOD transitions, terrain collision, world coordinate conversion, vegetation placement, biome/material weights, environment effects and terrain-change integration.
 
-This folder **does not own the FPS player, weapons or AI behavior**. The planned `Scenes/Tests/World_Test.tscn` should be runnable with a standalone free-fly/debug camera; future `Scenes/Game/MainGame.tscn` can instance the reusable `WORLD/World.tscn` alongside `PLAYER/Player.tscn`.
+This folder **does not own the FPS player, weapons or AI behavior**. The planned `SCENE/Scene_World.tscn` should be runnable with a standalone free-fly/debug camera; future `SCENE/Scene_Game.tscn` can instance the reusable `WORLD/World.tscn` alongside `PLAYER/Player.tscn`.
 
 ## Build strategy
 

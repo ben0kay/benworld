@@ -2,7 +2,7 @@
 
 > **Status: PLANNED DESIGN / AUTHORING STANDARD.** This document describes the intended custom procedural world system; **no terrain generator, cave system, vegetation streamer, water system or LOD pipeline is implemented yet**.
 >
-> **Scope:** `WORLD/` and the future independent `Scenes/Tests/World_Test.tscn`.  
+> **Scope:** `WORLD/` and the future independent `SCENE/Scene_World.tscn`.  
 > **Engine:** Godot 4 .NET / C#. **Terrain3D, Voxel Tools and other terrain plugins are not assumed or required.**  
 > **Read first:** [root README](../README.md), [AGENTS.md](../AGENTS.md), [CodePreferences.md](../CodePreferences.md), [WORLD README](README.md).
 
@@ -140,7 +140,7 @@ A 32 km world can expose single-precision position problems. Evaluate local/chun
 
 - Separate immutable procedural seed/version/configuration from mutable player edits, constructed structures, harvested objects and persistent entities.
 - Save terrain edits as sparse chunk-local differences or explicit edit operations with versioning; do not overwrite modifications when a chunk regenerates.
-- Keep world-generation rules independent of the FPS scene; World_Test must work with a camera/debug mover alone.
+- Keep world-generation rules independent of the FPS scene; Scene_World must work with a camera/debug mover alone.
 - Expose focused world queries/interfaces: density sample, surface/raycast, biome/material weights, suitable spawn location, terrain modification request, world seed/coordinate conversions.
 - Do not hard-code player node paths, debug-camera paths, particular room names or other scene-dependent references inside density generation.
 
@@ -172,7 +172,7 @@ WORLD/
 
 The root [README](../README.md) is authoritative for milestone statuses. Suggested world checkpoints:
 
-1. **BW-W1 — Surface proof:** one deterministic hill; correct triangle winding, normals, collider and materials. World_Test works without a player.
+1. **BW-W1 — Surface proof:** one deterministic hill; correct triangle winding, normals, collider and materials. Scene_World works without a player.
 2. **BW-W2 — Same-LOD neighbouring chunks:** shared boundaries have no gaps or visible shading discontinuity; seed reproducible.
 3. **BW-W3 — Geography and 3D volumes:** valley/mountain masks, controlled cave entrance, overhang, material masks and world-space continuity; verify no unintended holes.
 4. **BW-W4 — Stream/LOD:** move rapidly across chunk boundaries without persistent holes, stale chunks or unbounded queue growth; inspect mismatched LOD seams and frame-time spikes.
